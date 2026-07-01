@@ -1,0 +1,41 @@
+[Chapter 2]
+1. x와 y는 항상 1개 shift하는 관계
+2. dataloader
+3. embedding layer는 (vocab_size, output_dim)
+4. position embedding (context_length, output_dim)
+
+[Chapter 3]
+1. attention에서 q,k,v weight의 dimension (d_in, d_out)
+2. mask
+3. attention_score에 대해 마스킹을 가하는 것 -torch.inf
+4. attention weights 계산 : softmax
+5. context vector = attention weights @ values
+6. multi head attention은 차원을 맞추기 위해서함 (output_projection)
+
+[Chapter 4]
+1. LayerNorm 계산 : scale * norm_x + shift
+2. feedforward : 4배 확장 후, gelu 후, 4배 축소
+3. transformer block : attention과 feedforward
+4. gpt 구조 : token embedding, position embedding, dropout, transformers blocks, norm, out_head
+5. 추론시, torch.no_grad
+6. 마지막 토큰만 가져오기위해 -1번째만
+7. 토큰을 선택하기 위해 argmax
+8. model.eval : 추론에 필요없는 dropout 끄는 것
+9. unsqueeze와 squeeze를 하는 이유
+
+[Chapter 5]
+1. cross entropy 계산 : to로 device로 올리는 것, 추론 후 target과 비교해서 cross entropy 계산
+2. model.train : 중간에 추론을 위해 model.eval을 사용하기 때문에 학습하기 위해
+3. 학습 : optimizer.zero_grad(), loss계산, backward, optimizer.step()
+
+[Chapter 6]
+1. head 교체
+2. lora zero로 초기화 한 후 계산
+3. lora layer forward 부분
+4. lora로 replace하는 부분
+
+[Chapter 7]
+1. 데이터셋 만드는 부분 : template을 바꿈
+2. collate 함수에서 입력은 뒷부분 하나를 제외, target은 앞부분 하나를 제외
+3. padding 시작되는 지점 이후 -100으로 설정
+4. dpo는 chosen, reject. reference, policy 계산식
