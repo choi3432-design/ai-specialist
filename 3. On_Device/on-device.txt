@@ -1,0 +1,72 @@
+1. Activations, Parameters, FLOPs 계산하는 방법 (13P)
+
+X. Forward KL (mode-covering / CNN / 봉우리가 2개 있으면 2개다 커버), Reverse KL (mode-seeking / LLM / 봉우리가 2개 있으면 1개만 선택)
+X. Intermediate Representation KD
+   - Feature Regression : student의 feature를 키워서 teacher에 맞춤 - 동일한 갯수의 Layer를 선택한 후, student의 Layer들에 대해 linear layer를 곱해서 dimension을 맞춰줘서 distillation
+   - Attenton Map Distillation : teacher의 spatial attention map을 student에 증류
+   - Distribution Matching : activation disillation, 두 sample간의 분포의 유사도가 높아지도록 증류
+   - Factor-level Representation : teacher의 feature map을 summarization해서 student에 전달. 둘의 feature map을 뽑아서 paraphraser, translator 각각에 통과시켜서 factor를 뽑아내고 loss가 적어지도록 증류
+X. Structural / Funtional KD
+   - Process-aware KD : layer-to-layer 증류
+   - Activation Boundary KD : CNN의 경계선 증류. Relu를 쓰면 0으로 바뀌는 부분이 있는데 그 부분이 같아야함. activation을 transfer를 할때 값이 아니라 0,1로 줘야함
+   - Relational KD : 샘플간의 관계성 증류. 각 residual module에서 값을 뽑아서 loss계산
+
+X. OBD: Second-Order- based Pruning
+   - training이 거의 안일어나니까 gi=0
+   - 각 parameter를 제거하여 유발되는 error는 독립적이다. hij=0
+   - manitude 방식보다 좋음
+X. OBS : Optimal Brain Surgeon
+   - gi=0, hij=0를 적용해서 제거했었는데, 적용을 해야함
+   - weight를 제거하는 만큼 변화도를 다른 weight에 적용해서 pruning을 함
+X. SparseGPT (계산하는 방법 숙지)
+   - LLM은 커서 학습을 해서 Pruning을 할수없어서 나온방법
+   - layer별 output을 보고 pruning을 하는데, 에러가 적어지도록. H값은 모든 row에 동일함. H=XXt
+   - W를 통해 H-1을 찾고, 그 후 Mask를 찾고 제거. 제거하는 것의 effect를 해당 row에 분산시킴
+   - H-1을 다시 구하지 않기때문에 뒷쪽만 계속 업데이트
+X. Wanda
+   - activation의 영향을 받으니까 weight x norm을 해서 pruning weight 결정
+X. SPP: Sparsity-Preserved PEFT
+   - 50%이상 pruning하면 성능저하, fine-tuning시간 오래걸리며 mask가 변함
+   - mask를 유지하면서 살아있는 것만 학습
+   - W + △W를 lora에서 썼는데, 그러면 mask가 바뀌니까 W * △W로 바꾸자.
+X. LLM Quantization
+   - CNN : QAT, Bert도 동일
+   - LLM : PTQ, Weight-only, Weight-Activation, KV Cache
+X. Post-Training Quantization (PTQ)
+   - Weight는 Quantization은 쉬운데, Activation에는 Outlier가 많이 존재해서 어려움
+X. ZeroQuant
+   - Activation은 Range가 너무 넓었고, Weight도 Outlier가 좀 있었음
+   - Weight 8bit, Activation 8bit
+   - Weight : Group-wise quantization
+   - Activation : Token-wise quantization (token별로 가변적이니까). token별 scale값을 다르게 줌.
+   - LN/GeLU 연산 끝나면 바로 Quantization, GeMM 연산 끝나면 바로 Dequantization
+X. LLM.int8()
+   - Weight 8bit, Activation 8bit
+   - Outlier channel이 있는데 그것과 관련된 Weight만 따로 떼냄. 나머지만 가져와서 계산하여 quantization 후 떼넨것을 합해서 output냄.
+X. SmoothQuant
+   - Activation은 Quantization하기 어렵지만 smoothing을 하도록 s로 나눴을 때 quantization하기 수월함
+X. OmniQuant
+   - smoothquant는 runtime에서 작동
+   - 학습할때부터 gamma, beta를 찾자.
+X. QuaRot
+   - SmoothQuant의 문제점 A4W4는 안되지만, QuaRot는 가능
+   - rotation을 통해 분포를 바꿔줌
+X. SpinQuant
+   - rotation matrix를 optimal한 것을 찾아야함. Cayley GD
+   - R1(Weight앞), R2(Value쪽), R3(Output쪽), R4(MLP앞에 위치)
+   - R3, R4는 online overhead가 있음.
+X. Weight-only Quantization
+   - W4A4가 성능이 낮고, Weight가 메모리 사이즈를 많이 먹으니까 W4A16같은 형태로 해서 메모리 트래픽 줄이자 (속도에는 이득이 없음)
+X. GPTQ (SparseGPT랑 사실상 비슷)
+   - row 독립적. column-by-column으로 연산함
+X. SpQR
+   - group-level quantization : 2중으로 quantization (S값을 2번)
+   - outlier만 모아서 16-bit로 연산
+X. AWQ
+   - 중요한 channel만 FP16으로 (총 1%)
+   - 중요도를 weight로 하면 안되고 activation 분포로 계산해야함
+   - weight에 s곱, input에 s나눔.
+X. QLoRA
+   - NF4
+   - 64개의 parameter가 32-bit scale값을 공유 : parameter당 4.5bit
+   - 단일 0.5 bit, 이중 0.127bit
