@@ -1,0 +1,50 @@
+1. Classical IR
+   - Inverted Index, Ranking
+   - parallel indexing : map reduce, spark
+   - term-document matrix : corpus (sparse matrix). vocab축-document축. doucment 1개 = column vector (sparse vector)
+   - inverted index = (term, posting list) -> dense row representation
+   - sparse retrieval : frequency를 normalization한 값으로만 보면 'is'와 같이 자주 등장하는 단어에 매핑되서 점수가 높은 현상이 발생
+   - TF-IDF : Term Frequency (Document내 Frequency를 normalization) * Inverse Document Frequency (ln(문서갯수/단어 등장한 문서 갯수))
+   - IDF는 0일때 정의가 안되는 문제점 있음. => 0일때도 정의가 되도록 수식을 바꿔서 BM25로 해결
+   - document 길이가 다름에 파생된는 문제점이 있음. => 평균 문서길이로 보정을 해서 BM25로 해결
+   - relevance score : 문서내 단어들의 TF-IDF값을 모두 더한 값. 문서가 특정 query와 얼마나 관련있는지
+
+2. IR metrics
+   - classification task : (image, class label)
+   - ranking task :  (Query, ranked list of documents)
+     -> 1~1억등까지 순서를 매긴 리스트 -> cost가 많이 들고 힘듦
+     -> 1~3등까지 순서를 매긴 partial ranked list를 만들어서 학습 -> 이것도 힘듦
+     -> 1~3등까지 순서는 매기지 않고 relevent document를 만들어서 학습
+   - success and reciprocal rank : MRR@K. Success@K, RR@K
+   - Precision@K : 반환결과의 정확도. K등내에서 맞춘 비율
+   - Recall@K : 전체 관련도 문서 중에 K등내에서 맞춘 갯수
+
+3. BERT
+   - pre-training : Next Sentence Prediction과 Mask를 맞추는 2가지 task 수행
+   - fine-tuning : downstream task에 맞게 학습
+   - cross-encoder : 쿼리, 관련있는문서, 관련없는 문서를 통해 loss를 구함. 10억개의 문서면 10억번 cross-encoder를 돌려야해서 어려움
+   - DPR : bi-encoder. vector db를 이용하여 빠르게 찾아옴
+
+4. Retrieval Augmented Generation
+   - training 이후 시점 대응 어려움. private data에 대해 대응
+   - retriever & reader (generator) : google retriever & chat gpt 가능
+   - retriever & reder end-to-end training : query에 대해 어떤 문서를 뽑아야, 응답을 잘만드냐. P(y) = sum P(z) * P(y|z)
+   - retriever를 언제 할것인가?
+     -> 1) 처음에 시작할때 
+     -> 2) 생성동안에 필요하면. 
+             => 생성 도중에 search token을 뱉으면 그때 검색해서 생성.
+             => 모델이 불확실 할 때, 검색해서 생성. Q. D=Retrieve(Q). LLM(Q+D). 잘 안되면 Retreive(???). ???에 무엇을 넣어줘야하냐?
+                   -> 불확실한 내용을 마스킹해서 retriver한다 -> 불확실한지는 어떻게 아냐?
+                   -> f(uncertainty) => f(probability distribution) => entropy(pdf)
+   - kNN-LM : retreiver가 만든 확률분포와 chatgpt의 확률 분포를 interpolation 후 sampling (chagpt만 확률을 만드냐?에서 나온 방법)
+
+5. kNN Search
+   - 512 dim, 1024 dim, 2048 dim : 고차원 데이터는 인덱싱해도 성능 안나옴
+     -> 차원이 커질수록 차원당 길이가 1에 가까워져서 binary search가 안됨.
+     -> graph 방식으로 해결 가능. vertex를 선택하고 근접 vertex와 연결했을때, query와의 거리를 구해서 가까운 vertex를 선택. iteration 반복
+     -> 항상 답을 찾을 수 있게 graph를 어떻게 구성하는지? 
+     -> 모든 vertex를 다 연결하면 된느데 느리니까, 가장 가까운 근접 vertex를 제외하고는 연결을 끊음 (DiskANN적용하면 됨)
+
+
+
+

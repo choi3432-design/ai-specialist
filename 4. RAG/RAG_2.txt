@@ -1,0 +1,27 @@
+1. MCP
+   - AI Model + 외부데이터(DB) + tool
+   - connector를 ai model과 결합해 놓는 것이 아니라 모델 밖에 있음
+   - model이 각각의 db/api/fs connector에 직접 붙도록 구현하는 것이 아니라, MCP host server에 model과 connector가 각각 붙으면 됨
+     (N X M integration => N + M integration)
+   - MCP Host (Cowork), LLM, MCP Server (text2sql / resourse 및 tool을 제공해줌)
+   - Cowork가 text2sql에 tool list 요청 -> text2sql이 tool list 반환 -> Cowork이 system prompt에 tool list context를 삽입
+     -> LLM이 추론하여 어떤 tool과 query를 사용할지 결정 -> Cowork이 결과를 파싱하여 text2sql 서버에 요청하여 실행결과 받음
+     -> Cowork이 실행결과 포함하여 prompt를 구성하여 LLM에 요청 -> ...
+   - schema의 경우에는 resource로 할지, tool로 할지 design choice2
+
+2. Graph RAG
+   - document -> graph
+   - knowledge : facts + rules. (fact : triple (subject, predicate, object) : edge)
+   - Corpus에서 Answer 생성 = reader * retriever
+
+3. CrossEncoder
+   - batch를 (q,d+)로 구성
+   - negative document는 bm25를 이용해서 만들면 성능 좋아짐
+
+
+
+
+
+
+
+
